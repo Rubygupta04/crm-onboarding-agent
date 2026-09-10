@@ -1,0 +1,170 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0F0F1A;
+}
+
+.header {
+  background: linear-gradient(135deg, #1F5C99, #1A1A2E);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #1F5C99;
+}
+
+.header-logo {
+  font-size: 32px;
+}
+
+.header-text h1 {
+  color: white;
+  font-size: 18px;
+}
+
+.header-text p {
+  color: #A0C4E8;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.header-badge {
+  margin-left: auto;
+  background: #1A7A4A;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  font-size: 24px;
+  min-width: 36px;
+  text-align: center;
+}
+
+.bubble {
+  max-width: 65%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.message.agent .bubble {
+  background: #1F3A5F;
+  color: #E8F4FF;
+}
+
+.message.user .bubble {
+  background: #1F5C99;
+  color: white;
+}
+
+.typing {
+  display: flex;
+  gap: 4px;
+  padding: 16px !important;
+}
+
+.typing span {
+  width: 8px;
+  height: 8px;
+  background: #A0C4E8;
+  border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.input-area {
+  display: flex;
+  padding: 16px;
+  gap: 10px;
+  background: #1A1A2E;
+  border-top: 1px solid #1F5C99;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #1F5C99;
+  background: #0F0F1A;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-area button {
+  padding: 12px 24px;
+  background: #1F5C99;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.input-area button:hover {
+  background: #2771B8;
+}
+
+.input-area button:disabled {
+  opacity: 0.5;
+}
+
+.footer {
+  background: #0A0A14;
+  color: #555;
+  text-align: center;
+  padding: 8px;
+  font-size: 11px;
+}
