@@ -129,6 +129,33 @@ npm start
 ```
 *Frontend opens at `http://localhost:3000`*
 
+---
+
+## ☁️ AWS Bedrock AgentCore Deployment
+
+This project is **100% native to AWS Bedrock AgentCore** built on the **AWS Strands SDK**.
+
+### Deploy to AWS Bedrock AgentCore via AWS CLI:
+
+1. **Deploy Lambda Handler**:
+   ```bash
+   zip -r agentcore_package.zip agent_core_handler.py crm_engine.py tools.py app.py requirements.txt
+   aws lambda create-function \
+     --function-name NextWaveAgentCoreHandler \
+     --runtime python3.11 \
+     --handler agent_core_handler.lambda_handler \
+     --role arn:aws:iam::YOUR_ACCOUNT_ID:role/service-role/AgentCoreRole \
+     --zip-file fileb://agentcore_package.zip
+   ```
+
+2. **Register Bedrock AgentCore**:
+   ```bash
+   aws bedrock-agent create-agent \
+     --agent-name NextWave-CRM-Onboarding-Agent \
+     --foundation-model global.anthropic.claude-sonnet-4-6 \
+     --instruction "NextWave Senior Salesforce CRM Onboarding Specialist"
+   ```
+
 ### 4. Run Multi-Agent Supervisor System (Optional)
 
 ```bash

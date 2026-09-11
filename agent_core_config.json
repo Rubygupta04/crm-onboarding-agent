@@ -1,0 +1,27 @@
+{
+  "agentName": "NextWave-CRM-Onboarding-Agent",
+  "foundationModel": "global.anthropic.claude-sonnet-4-6",
+  "instruction": "You are NextWave's Senior Salesforce CRM Onboarding Specialist powered by AWS Strands Agents SDK. Guide small businesses through 5 questions to generate custom Salesforce CRM pipelines, fields, and automation rules.",
+  "agentResourceRoleArn": "arn:aws:iam::123456789012:role/service-role/AmazonBedrockExecutionRoleForAgents_NextWave",
+  "actionGroups": [
+    {
+      "actionGroupName": "CRMOnboardingTools",
+      "description": "Multi-agent tool suite for schema generation, email creation, cost estimation, and CRM audit",
+      "actionGroupExecutor": {
+        "lambda": "arn:aws:lambda:us-west-1:123456789012:function:NextWaveAgentCoreHandler"
+      },
+      "apiSchema": {
+        "payload": "agent_core_handler.py"
+      }
+    }
+  ],
+  "promptOverrideConfiguration": {
+    "promptConfigurations": [
+      {
+        "promptType": "PRE_PROCESSING",
+        "promptState": "ENABLED",
+        "basePromptTemplate": "Classify if the input is related to CRM onboarding, sales pipelines, or general business setup."
+      }
+    ]
+  }
+}
