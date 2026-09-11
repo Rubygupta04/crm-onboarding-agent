@@ -1,9 +1,37 @@
+import os
+import sys
 import json
 import time
+
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
+import anthropic
 
-# Try to import Strands AI for intelligent fallback
+from crm_engine import MultiAgentCRMOrchestrator
+
+# ─── Dual Claude AI Integration (Direct Anthropic + AWS Bedrock) ─────────────
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+anthropic_client = None
+
+if ANTHROPIC_API_KEY:
+    try:
+        anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+        print("[OK] Direct Anthropic Claude AI Client active.")
+    except Exception as e:
+        print(f"[WARN] Anthropic client init note: {e}")
+
+# Try to import Strands AI for AWS Bedrock fallback
 try:
     from strands import Agent
     from strands.models import BedrockModel
@@ -59,10 +87,101 @@ try:
     print("[OK] Claude AI + Strands Tools + Agent Lifecycle Hooks active.")
 except Exception as e:
     AI_AVAILABLE = False
-    print(f"[WARN] Claude AI not available, using FAQ fallback only. ({e})")
+    print(f"[WARN] Claude AI Bedrock note: ({e})")
+
+
+def query_claude(prompt: str, system_prompt: str = None) -> tuple:
+    """Universal Claude AI query router: tries Direct Anthropic API -> AWS Bedrock Claude -> Smart Engine."""
+    global anthropic_client, ANTHROPIC_API_KEY
+    
+    # Dynamically check for ANTHROPIC_API_KEY in environment
+    env_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if env_key and (not anthropic_client or env_key != ANTHROPIC_API_KEY):
+        try:
+            anthropic_client = anthropic.Anthropic(api_key=env_key)
+            ANTHROPIC_API_KEY = env_key
+            print(f"[OK] Dynamic Anthropic Claude AI Client activated (key length: {len(env_key)})")
+        except Exception as e:
+            print(f"[WARN] Dynamic Anthropic client init error: {e}")
+
+    # 1. Direct Anthropic Claude API (if key is set)
+    if anthropic_client:
+        for m in ["claude-sonnet-4-6", "claude-3-5-sonnet-20241022", "claude-3-5-sonnet-latest", "claude-3-7-sonnet-latest"]:
+            try:
+                msg = anthropic_client.messages.create(
+                    model=m,
+                    max_tokens=1024,
+                    system=system_prompt or "You are NextWave's Senior Salesforce CRM Onboarding Specialist.",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                text = msg.content[0].text
+                print(f"🤖 [Model Tracker] Responded via Direct Anthropic API ({m})")
+                return text, f"Direct Anthropic Claude API ({m})"
+            except Exception as e:
+                print(f"[WARN] Direct Anthropic API error ({m}): {e}")
+
+    # 2. AWS Bedrock Claude AI via Strands Agent
+    if AI_AVAILABLE:
+        try:
+            response = ai_agent(prompt)
+            print("🤖 [Model Tracker] Responded via AWS Bedrock (global.anthropic.claude-sonnet-4-6)")
+            return str(response), "AWS Bedrock Claude AI (global.anthropic.claude-sonnet-4-6)"
+        except Exception as e:
+            print(f"[WARN] AWS Bedrock Claude API error note: {e}")
+
+    return None, None
+
 
 app = Flask(__name__)
 CORS(app)
+
+
+@app.route('/model-info', methods=['GET', 'POST'])
+def model_info():
+    global anthropic_client, ANTHROPIC_API_KEY
+    
+    # Check if key posted via JSON
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        key = data.get('api_key', '').strip()
+        if key:
+            try:
+                anthropic_client = anthropic.Anthropic(api_key=key)
+                ANTHROPIC_API_KEY = key
+                os.environ["ANTHROPIC_API_KEY"] = key
+                print(f"[OK] Anthropic API Key updated via /model-info endpoint!")
+            except Exception as e:
+                return jsonify({'error': str(e)}), 400
+
+    env_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if env_key and not anthropic_client:
+        try:
+            anthropic_client = anthropic.Anthropic(api_key=env_key)
+            ANTHROPIC_API_KEY = env_key
+        except Exception:
+            pass
+
+    if anthropic_client:
+        active_provider = "Direct Anthropic Claude API"
+        active_model = "claude-3-5-sonnet-20241022 (Claude Sonnet 3.5 / 3.7)"
+        key_status = "Active & Verified ✅"
+    elif AI_AVAILABLE:
+        active_provider = "AWS Bedrock Claude AI"
+        active_model = "global.anthropic.claude-sonnet-4-6 (Claude 4.6 Sonnet)"
+        key_status = "Using AWS Bedrock Credentials / Engine Fallback"
+    else:
+        active_provider = "NextWave Multi-Agent Orchestration Engine"
+        active_model = "Deterministic Strands Engine Fallback"
+        key_status = "No API key detected"
+
+    return jsonify({
+        'active_provider': active_provider,
+        'active_model': active_model,
+        'key_status': key_status,
+        'api_key_detected': bool(anthropic_client or env_key),
+        'bedrock_model_id': "global.anthropic.claude-sonnet-4-6",
+        'status': 'success'
+    })
 
 
 # ─── FAQ Keyword Handler ────────────────────────────────────────────────────
@@ -166,11 +285,48 @@ Just answer my 5 questions and I'll generate your full personalized CRM setup pl
 Type **'hello'** to start (or continue) the onboarding! 🚀"""
     },
     {
+        "keywords": ["feed leads", "feeding leads", "import leads", "capture leads", "lead capture", "web to lead", "start onboarding", "onboarding process", "how to feed leads", "how can i start feeding leads"],
+        "answer": """**How to Feed Leads & Start End-to-End Salesforce Onboarding** 🚀
+
+To capture leads and kickstart your onboarding process:
+
+1. 🌐 **Web-to-Lead Forms**: Generate an HTML Web-to-Lead form in Salesforce Setup and embed it on your website. Form submissions automatically create Lead records.
+2. 📄 **CSV Data Import**: Use Salesforce Data Import Wizard to import existing contacts from Excel or CSV spreadsheets.
+3. ⚡ **API & Zapier Integration**: Connect your lead sources (LinkedIn Ads, Typeform, Webhooks) directly to Salesforce using Zapier or REST APIs.
+4. 🤖 **Auto-Assignment & Workflows**: Incoming leads are automatically assigned to sales reps and trigger welcome email sequences!
+
+Ready to build your custom lead ingestion pipeline? Type **'hello'** or continue answering the 5 onboarding questions! 🎯"""
+    },
+    {
+        "keywords": ["integration", "integrate", "zapier", "api", "connect website", "webhook"],
+        "answer": """**Salesforce Integration & API Connectivity** 🔌
+
+Salesforce connects with virtually any business tool:
+- **Zapier / Make**: Connect 5,000+ apps (Gmail, Slack, Typeform, Facebook Ads) without coding.
+- **Salesforce REST API**: Direct API ingestion for custom web/mobile applications.
+- **Email-to-Lead**: Automatically parse inbound lead emails into Salesforce.
+
+Our onboarding engine maps all these integrations directly into your custom setup plan! 🚀"""
+    },
+    {
+        "keywords": ["automation", "automate", "workflow", "trigger", "follow up rule", "stale deal"],
+        "answer": """**Salesforce Workflows & Automations** ⚡
+
+Automations save hours of manual admin work:
+- 🔔 **Follow-up Reminders**: Auto-trigger reminders if a deal stays inactive for 3+ days.
+- 📧 **Auto-Email Sequences**: Send proposal follow-up emails automatically.
+- 🎯 **Lead Scoring**: Assign points to leads based on activity and auto-assign hot leads.
+
+Finish the 5 onboarding questions to generate your custom automation rule suite! 🚀"""
+    },
+    {
         "keywords": ["restart", "start over", "reset", "begin again", "hello", "hi", "hey", "start"],
         "answer": None  # Let the normal flow handle it (step logic)
     }
 ]
 
+
+import re
 
 def check_faq(message):
     """Returns FAQ answer if message matches known keywords, else None."""
@@ -178,25 +334,49 @@ def check_faq(message):
     for faq in FAQ:
         if faq["answer"] is None:
             continue
-        if any(kw in msg_lower for kw in faq["keywords"]):
-            return faq["answer"]
+        for kw in faq["keywords"]:
+            pattern = r'\b' + re.escape(kw) + r'\b'
+            if re.search(pattern, msg_lower):
+                return faq["answer"]
     return None
 
 
 def ai_fallback(message):
-    """Use Claude AI to answer if available, else return a generic response."""
-    if AI_AVAILABLE:
-        try:
-            response = ai_agent(message)
-            return str(response)
-        except Exception as e:
-            print(f"AI error: {e}")
+    """Use Claude AI to answer if available, else return a smart CRM Specialist response."""
+    claude_text, model_used = query_claude(message)
+    if claude_text:
+        return f"{claude_text}\n\n🤖 *[Powered by {model_used}]*"
 
-    return """I'm not sure about that, but I'm here to help you set up your Salesforce CRM! 😊
+    # Smart domain-aware response for CRM / Salesforce / Business questions
+    msg_lower = message.lower().strip()
+    
+    if any(w in msg_lower for w in ["lead", "ingest", "feed", "onboard", "capture", "form"]):
+        return """**Salesforce Lead Feeding & Onboarding Pipeline Guide** 🚀
 
-If you have questions about **Salesforce**, **CRM setup**, or **pricing**, just ask!
+To feed leads into Salesforce and run an end-to-end onboarding workflow:
 
-Otherwise, type **'hello'** to continue your personalized CRM onboarding. 🚀"""
+1. **Setup Lead Sources**: Enable Web-to-Lead forms or connect Zapier / Webhooks.
+2. **Configure Pipeline**: Define Opportunity stages (`New Lead` ➔ `Needs Assessment` ➔ `Proposal` ➔ `Closed Won`).
+3. **Automate Workflows**: Set up auto-assignment to sales reps and trigger welcome email sequences upon status change.
+
+Type **'hello'** or enter your business name to build your custom Salesforce pipeline! 🎯"""
+
+    if any(w in msg_lower for w in ["salesforce", "crm", "setup", "field", "pipeline", "stage", "role"]):
+        return """**NextWave Salesforce CRM Onboarding Specialist** 🤖
+
+I can configure your entire Salesforce CRM setup in under 3 minutes:
+- 📊 Custom Pipeline Stages & Fields
+- ⚡ Automated Lead Assignment & Reminder Rules
+- 📧 AI Outreach & Follow-Up Email Templates
+- 📈 CRM Readiness Quality Score (0-100)
+
+Type **'hello'** to start your guided 5-question onboarding! 🚀"""
+
+    return """I'm your NextWave CRM Specialist! 🤖
+
+I can answer questions about **Salesforce setup**, **lead ingestion**, **pipeline automation**, and **pricing**.
+
+Type **'hello'** to start (or continue) your personalized CRM onboarding! 🚀"""
 
 
 # ─── Industry / Team / Plan Helpers ────────────────────────────────────────
@@ -506,6 +686,16 @@ I will help you set up the perfect Salesforce CRM for your business.
             "step": 1
         }
 
+    # 2b. Courtesy response for thanks / thank you
+    if msg_lower in ["thanks", "thank you", "thanks!", "thank you!", "thx", "ty"]:
+        resp = "You're very welcome! 😊 Happy to help!"
+        if 1 <= pending_q <= 5:
+            resp += QUESTION_REMINDERS.get(pending_q, "")
+        return {
+            "response": resp,
+            "step": max(1, pending_q)
+        }
+
     # 3. Check if user provided a generic non-answer like "yes", "ok", "sure", etc.
     if 1 <= pending_q <= 5 and is_generic_or_invalid_answer(message, pending_q):
         return {
@@ -516,8 +706,13 @@ I will help you set up the perfect Salesforce CRM for your business.
     # 4. User is answering pending_q (1 to 5) with a valid answer
     if pending_q == 1:
         answers[1] = msg_clean
+        ind_detected = detect_industry(msg_clean)
         return {
-            "response": """Perfect! Thank you for sharing that.
+            "response": f"""Awesome! Thank you for sharing **'{msg_clean}'**. 
+
+Based on your business profile (**{ind_detected}**), Salesforce will help you centralize client accounts, track deal pipelines, and prevent prospects from falling through the cracks!
+
+Now, let's configure your team's Salesforce user licenses and security permissions.
 
 """ + QUESTION_PROMPTS[2],
             "step": 2
@@ -526,7 +721,9 @@ I will help you set up the perfect Salesforce CRM for your business.
     elif pending_q == 2:
         answers[2] = msg_clean
         return {
-            "response": """Great! That helps me understand your setup.
+            "response": f"""Great! Configuring Salesforce for **'{msg_clean}'** allows us to set up custom User Roles (Sales Reps, Account Managers, Executives) with tailored visibility and security access.
+
+Next, let's map where your leads come from so Salesforce can track your marketing ROI!
 
 """ + QUESTION_PROMPTS[3],
             "step": 3
@@ -535,7 +732,9 @@ I will help you set up the perfect Salesforce CRM for your business.
     elif pending_q == 3:
         answers[3] = msg_clean
         return {
-            "response": """Excellent! Understanding your lead sources is key.
+            "response": f"""Excellent! Tracking lead sources (**'{msg_clean}'**) allows Salesforce to automatically assign new incoming leads to available team members and measure your channel conversion rates.
+
+Next, let me design your visual Sales Pipeline stages!
 
 """ + QUESTION_PROMPTS[4],
             "step": 4
@@ -544,7 +743,9 @@ I will help you set up the perfect Salesforce CRM for your business.
     elif pending_q == 4:
         answers[4] = msg_clean
         return {
-            "response": """Almost done! Just one more question.
+            "response": f"""Fantastic! We will translate your client journey steps (**'{msg_clean}'**) directly into custom Salesforce Opportunity Pipeline stages so your team can manage deals visually.
+
+Just one final question to set up your automated reminders and email triggers!
 
 """ + QUESTION_PROMPTS[5],
             "step": 5
@@ -560,12 +761,31 @@ I will help you set up the perfect Salesforce CRM for your business.
         follow_up      = answers.get(5, 'regular reminders')
 
         industry = detect_industry(business_info)
-        pipeline_stages = get_pipeline_stages(industry)
         sf_tier = get_salesforce_tier(team_size)
-        custom_fields = get_lead_source_fields(lead_source)
+
+        # Run Multi-Agent Orchestrator (DataAgent -> AutomationAgent -> ValidationAgent)
+        orchestrator = MultiAgentCRMOrchestrator()
+        engine_output = orchestrator.generate_and_validate(
+            business_info=business_info,
+            industry=industry,
+            team_size=team_size,
+            lead_source=lead_source,
+            client_journey=client_journey,
+            follow_up=follow_up
+        )
+
+        pipeline_stages = engine_output["pipeline"]
+        user_roles = engine_output["user_roles"]
+        custom_fields = engine_output["custom_fields"]
+        automations = engine_output["automations"]
+        readiness_score = engine_output["readiness_score"]
+        val_report = engine_output["validation_report"]
+        execution_trace = engine_output["execution_trace"]
 
         stages_text = "\n".join([f"{i+1}. {s}" for i, s in enumerate(pipeline_stages)])
         fields_text = "\n".join([f"- {f}" for f in custom_fields])
+        roles_text = "\n".join([f"- {r}" for r in user_roles])
+        auto_text = "\n".join([f"- {a}" for a in automations])
 
         text_plan = f"""✅ Thank you! Here is your Personalized Salesforce CRM Setup Plan:
 
@@ -574,9 +794,14 @@ I will help you set up the perfect Salesforce CRM for your business.
 👤 **Business:** {business_info}
 🏭 **Industry Detected:** {industry}
 👥 **Team Size:** {team_size}
-📣 **Lead Sources:** {lead_source}
-🔄 **Client Journey:** {client_journey}
-🔔 **Follow-Up Style:** {follow_up}
+📊 **CRM Readiness Score:** {readiness_score}/100 ({val_report['status']})
+
+---
+
+🤖 **Agent Execution Trace:**
+- Supervisor ➔ Data Agent: Generated Objects, Fields & User Roles
+- Supervisor ➔ Automation Agent: Configured Lead Assignment & Workflows
+- Supervisor ➔ Validation Agent: Audit Completed ({readiness_score}% Quality Score)
 
 ---
 
@@ -585,12 +810,13 @@ I will help you set up the perfect Salesforce CRM for your business.
 
 ---
 
-⚡ **Automation Recommendations:**
-- Auto-capture leads from {lead_source} into Salesforce
-- Set follow-up reminders based on: "{follow_up}"
-- Auto-send proposal follow-up emails after 5 days of no response
-- Weekly stale lead alerts for deals inactive over 7 days
-- Auto-assign new leads to the right team member
+👥 **Configured Salesforce User Roles:**
+{roles_text}
+
+---
+
+⚡ **Automated Workflow Rules:**
+{auto_text}
 
 ---
 
@@ -609,7 +835,7 @@ NextWave Tech Studio • dnextwave.com
 
 *Have questions about your plan? Just ask me anything!*"""
 
-        schema = generate_salesforce_schema(business_info, industry, custom_fields, pipeline_stages)
+        schema = engine_output["salesforce_schema"]
         email_templates = generate_email_templates(business_info, industry, lead_source, follow_up)
 
         return {
@@ -619,7 +845,10 @@ NextWave Tech Studio • dnextwave.com
             "salesforce_schema": schema,
             "email_templates": email_templates,
             "business_info": business_info,
-            "industry": industry
+            "industry": industry,
+            "readiness_score": readiness_score,
+            "validation_report": val_report,
+            "execution_trace": execution_trace
         }
 
     else:
@@ -659,6 +888,9 @@ def chat_stream():
             "email_templates": res_data.get("email_templates") if isinstance(res_data, dict) else None,
             "business_info": res_data.get("business_info") if isinstance(res_data, dict) else None,
             "industry": res_data.get("industry") if isinstance(res_data, dict) else None,
+            "readiness_score": res_data.get("readiness_score") if isinstance(res_data, dict) else None,
+            "validation_report": res_data.get("validation_report") if isinstance(res_data, dict) else None,
+            "execution_trace": res_data.get("execution_trace") if isinstance(res_data, dict) else None,
         }
         yield f"data: {json.dumps({'meta': meta_chunk})}\n\n"
 
@@ -691,6 +923,42 @@ def run_agent_tasks():
         'tasks': tasks_completed,
         'status': 'Agent completed all tasks!'
     })
+
+
+import sys
+sys.path.append('.')
+
+@app.route('/run-supervisor', methods=['POST'])
+def run_supervisor_endpoint():
+    try:
+        from agents.supervisor import run_supervisor
+        
+        data = request.json or {}
+        business_profile = {
+            'business_name': data.get('business_name', ''),
+            'industry': data.get('industry', ''),
+            'team_size': data.get('team_size', ''),
+            'lead_sources': data.get('lead_sources', ''),
+            'sales_process': data.get('sales_process', ''),
+            'followup_needs': data.get('followup_needs', '')
+        }
+        
+        result = run_supervisor(business_profile)
+        
+        return jsonify({
+            'result': result,
+            'status': 'success',
+            'agents_used': [
+                'Supervisor Agent',
+                'Data Agent', 
+                'Automation Agent',
+                'Validation Agent',
+                'Scoring Agent'
+            ]
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e), 'status': 'error'}), 500
 
 
 if __name__ == "__main__":

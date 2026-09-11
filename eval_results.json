@@ -1,0 +1,68 @@
+{
+  "total_scenarios": 5,
+  "pass_rate_percent": 100.0,
+  "average_readiness_score": 96.8,
+  "total_benchmark_time_seconds": 0.0,
+  "results": [
+    {
+      "id": 1,
+      "scenario_name": "Quantum Leap Wealth",
+      "industry": "Financial Services",
+      "readiness_score": 98,
+      "validation_status": "Ready for Salesforce Deployment",
+      "pipeline_stages_count": 5,
+      "user_roles_count": 3,
+      "automations_count": 5,
+      "latency_seconds": 0.0,
+      "passed": true
+    },
+    {
+      "id": 2,
+      "scenario_name": "GreenCare Health Clinic",
+      "industry": "Healthcare",
+      "readiness_score": 98,
+      "validation_status": "Ready for Salesforce Deployment",
+      "pipeline_stages_count": 5,
+      "user_roles_count": 3,
+      "automations_count": 5,
+      "latency_seconds": 0.0,
+      "passed": true
+    },
+    {
+      "id": 3,
+      "scenario_name": "RealtyPros Direct",
+      "industry": "Real Estate",
+      "readiness_score": 92,
+      "validation_status": "Ready for Salesforce Deployment",
+      "pipeline_stages_count": 5,
+      "user_roles_count": 4,
+      "automations_count": 5,
+      "latency_seconds": 0.0,
+      "passed": true
+    },
+    {
+      "id": 4,
+      "scenario_name": "Hope Environmental Nonprofit",
+      "industry": "Nonprofit",
+      "readiness_score": 98,
+      "validation_status": "Ready for Salesforce Deployment",
+      "pipeline_stages_count": 5,
+      "user_roles_count": 3,
+      "automations_count": 5,
+      "latency_seconds": 0.0,
+      "passed": true
+    },
+    {
+      "id": 5,
+      "scenario_name": "Apex SaaS Tech Studio",
+      "industry": "Technology",
+      "readiness_score": 98,
+      "validation_status": "Ready for Salesforce Deployment",
+      "pipeline_stages_count": 5,
+      "user_roles_count": 3,
+      "automations_count": 5,
+      "latency_seconds": 0.0,
+      "passed": true
+    }
+  ]
+}

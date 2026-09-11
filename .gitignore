@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+node_modules/
+build/
+.DS_Store
+.system_generated/
+.tempmediaStorage/
+.user_uploaded/
+browser/
+scratch/
+.env
+.env.local
+.env.*.local
+*.log
