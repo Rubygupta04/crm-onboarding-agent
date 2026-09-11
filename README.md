@@ -139,12 +139,15 @@ python supervisor_agent.py
 
 ## 👩‍💻 Built By
 
-**Ruby Gupta** — NextWave Tech Studio  
+**Ruby Gupta** — Independent Freelancer & CRM Consultant (NextWave Tech Studio)  
 🌐 [dnextwave.com](https://dnextwave.com)
 
 ---
 
-## ⚖️ Disclaimer
+## ⚖️ Disclaimer & Independence Notice
 
-Salesforce is a registered trademark of Salesforce, Inc. **NextWave CRM Onboarding Agent** is an independent project and is not affiliated with, sponsored by, or endorsed by Salesforce, Inc. All trademarks and registered trademarks are the property of their respective owners.
+- **Trademark Notice**: Salesforce is a registered trademark of Salesforce, Inc.
+- **Independent Project**: **NextWave CRM Onboarding Agent** is an independent, self-funded hackathon project built by Ruby Gupta as an independent freelancer.
+- **No Affiliation or Sponsorship**: This project is **not affiliated with, sponsored by, authorized by, or endorsed by** Salesforce, Inc., Anthropic, AWS, or any of their parent companies or subsidiaries.
+- **Trademarks**: All trademarks, service marks, and company names mentioned herein are the property of their respective owners.
 

@@ -77,3 +77,11 @@ Tested across 5 real-world business scenarios using `eval_scenarios.py`:
 - **AI Foundation Model**: Amazon Bedrock (Anthropic Claude Sonnet 3.5 / 4.0).
 - **Backend API**: Python Flask, Server-Sent Events (SSE) word streaming (`/chat-stream`, `/run-supervisor`).
 - **Frontend Dashboard**: React 19, Vanilla CSS, Responsive Glassmorphism Design.
+
+---
+
+## ⚖️ Disclaimer & Independence Notice
+
+- **Trademark Notice**: Salesforce is a registered trademark of Salesforce, Inc.
+- **Independent Project**: **NextWave CRM Onboarding Agent** is an independent, self-funded hackathon project built by Ruby Gupta as an independent freelancer & CRM consultant.
+- **No Affiliation or Sponsorship**: This project is **not affiliated with, sponsored by, authorized by, or endorsed by** Salesforce, Inc., Anthropic, AWS, or any of their parent companies or subsidiaries. All trademarks belong to their respective owners.
