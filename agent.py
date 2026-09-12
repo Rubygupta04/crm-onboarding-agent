@@ -5,11 +5,18 @@ from tools import (
     generate_crm_plan, send_welcome_email, calculate_crm_cost,
     check_subscription_status, cancel_subscription, search_salesforce_pricing
 )
-
 from strands.hooks import (
     HookProvider, HookRegistry,
     BeforeToolCallEvent, AfterToolCallEvent, BeforeModelCallEvent
 )
+
+try:
+    from bedrock_agentcore.runtime import BedrockAgentCoreApp
+    AGENTCORE_AVAILABLE = True
+except ImportError:
+    AGENTCORE_AVAILABLE = False
+
+from app import get_crm_response
 
 # ─── Agent Lifecycle Hooks ───
 class CRMAgentHooks(HookProvider):
@@ -30,7 +37,7 @@ class CRMAgentHooks(HookProvider):
     def on_llm_start(self, event: BeforeModelCallEvent):
         print("🤖 [Agent Hook] Claude AI thinking...")
 
-# Correct model ID for us-west-1
+# Model configuration for AWS Bedrock
 model = BedrockModel(
     model_id="global.anthropic.claude-sonnet-4-6",
     region_name="us-west-1",
@@ -70,16 +77,41 @@ agent = Agent(
     Be friendly, professional, and specific to their business needs."""
 )
 
-print("=" * 50)
-print("Welcome to NextWave CRM Onboarding Agent!")
-print("=" * 50)
-print("I will help you set up Salesforce CRM.")
-print("Type 'quit' to exit\n")
 
-while True:
-    user_input = input("You: ")
-    if user_input.lower() == 'quit':
-        print("Thank you for using NextWave CRM Agent!")
-        break
-    response = agent(user_input)
-    print(f"\nAgent: {response}\n")
+def supervisor(message, history=None):
+    """Supervisor Agent router delegating execution to NextWave Multi-Agent Engine."""
+    res = get_crm_response(message, history or [])
+    if isinstance(res, dict):
+        return res.get("response", str(res))
+    return str(res)
+
+
+# ─── AWS Bedrock AgentCore Deployment Runtime ───
+if AGENTCORE_AVAILABLE:
+    app = BedrockAgentCoreApp()
+
+    @app.entrypoint
+    def run(payload):
+        message = payload.get("message", "")
+        history = payload.get("history", [])
+        response = supervisor(message, history)
+        return {"response": str(response)}
+
+if __name__ == "__main__":
+    if AGENTCORE_AVAILABLE and hasattr(app, "run"):
+        print("🚀 Starting AWS Bedrock AgentCore Application Runtime...")
+        app.run()
+    else:
+        print("=" * 50)
+        print("Welcome to NextWave CRM Onboarding Agent!")
+        print("=" * 50)
+        print("I will help you set up Salesforce CRM.")
+        print("Type 'quit' to exit\n")
+
+        while True:
+            user_input = input("You: ")
+            if user_input.lower() == 'quit':
+                print("Thank you for using NextWave CRM Agent!")
+                break
+            response = agent(user_input)
+            print(f"\nAgent: {response}\n")

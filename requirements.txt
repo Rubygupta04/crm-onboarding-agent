@@ -3,3 +3,5 @@ flask-cors==4.0.1
 anthropic>=0.20.0
 gunicorn==22.0.0
 requests>=2.31.0
+bedrock-agentcore-starter-toolkit>=0.3.12
+
