@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "crm-agent-ui/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "build" }
+    },
+    {
+      "src": "app.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/chat",
+      "dest": "app.py"
+    },
+    {
+      "src": "/chat-stream",
+      "dest": "app.py"
+    },
+    {
+      "src": "/model-info",
+      "dest": "app.py"
+    },
+    {
+      "src": "/run-supervisor",
+      "dest": "app.py"
+    },
+    {
+      "src": "/run-agent-tasks",
+      "dest": "app.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "crm-agent-ui/$1"
+    }
+  ]
+}
