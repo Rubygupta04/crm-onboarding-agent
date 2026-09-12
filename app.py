@@ -238,16 +238,7 @@ Yes! You can upgrade your Salesforce CRM plan anytime:
 To upgrade immediately, go to **Salesforce Setup ➔ Billing & Subscriptions** or contact **support@dnextwave.com**!"""
     },
     {
-        "keywords": ["subscription", "billing", "my plan", "status", "subscription status", "plan status", "plan"],
-        "answer": """**Salesforce Subscription & Billing** 💳
-
-- **Current Trial Status**: 30-Day Free Trial Active
-- **Starter/Essentials Tier**: $25/user/month
-- **Refund Policy**: Full refund eligible within 30 days of billing charge
-- **Cancellation**: Can be requested anytime from Account Settings or via support@dnextwave.com"""
-    },
-    {
-        "keywords": ["cancel", "cancellation", "refund", "stop subscription"],
+        "keywords": ["cancel", "cancellation", "cancel subscription", "how to cancel", "refund", "stop subscription"],
         "answer": """**Subscription Cancellation & Refund Policy** 🚫
 
 If you need to cancel your Salesforce subscription:
@@ -256,6 +247,15 @@ If you need to cancel your Salesforce subscription:
 3. **Refunds**: Eligible for a full refund within 30 days of your last billing charge.
 
 Contact **support@dnextwave.com** or **support@salesforce.com** to process!"""
+    },
+    {
+        "keywords": ["subscription", "billing", "my plan", "subscription status", "plan status", "current plan"],
+        "answer": """**Salesforce Subscription & Billing** 💳
+
+- **Current Trial Status**: 30-Day Free Trial Active
+- **Starter/Essentials Tier**: $25/user/month
+- **Refund Policy**: Full refund eligible within 30 days of billing charge
+- **Cancellation**: Can be requested anytime from Account Settings or via support@dnextwave.com"""
     },
     {
         "keywords": ["how long", "how much time", "setup time", "how many days"],
