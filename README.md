@@ -2,6 +2,8 @@
 
 > **Agents for Humans Hackathon 2026 — Professional Agents Track**  
 > An autonomous AI Agent workspace that helps small businesses and nonprofits configure Salesforce CRM automatically using **AWS Strands Agents SDK** and **Claude AI via Amazon Bedrock**.
+> 
+> 🌐 **Live Web Application**: [https://crm-agent-ui.vercel.app](https://crm-agent-ui.vercel.app)
 
 ---
 

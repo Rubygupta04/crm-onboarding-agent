@@ -1,5 +1,6 @@
 # 🚀 Executive Brief: NextWave CRM Onboarding Platform
-**Agents for Humans Hackathon 2026 Submission**
+**Agents for Humans Hackathon 2026 Submission**  
+🌐 **Live Web Application**: [https://crm-agent-ui.vercel.app](https://crm-agent-ui.vercel.app)
 
 ---
 
