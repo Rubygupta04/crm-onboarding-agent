@@ -1,0 +1,14 @@
+default_agent: NextWave-CRM-Onboarding-Agent
+agents:
+  NextWave-CRM-Onboarding-Agent:
+    name: NextWave-CRM-Onboarding-Agent
+    entrypoint: agent.py
+    runtime: python3.11
+    deployment_type: direct_code_deploy
+    foundation_model: global.anthropic.claude-sonnet-4-6
+    description: NextWave Senior Salesforce CRM Onboarding Specialist Agent powered by AWS Strands Agents SDK
+    aws:
+      account: ""
+      region: "us-west-1"
+    env:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
