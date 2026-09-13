@@ -136,6 +136,38 @@ app = Flask(__name__)
 CORS(app)
 
 
+@app.route('/', methods=['GET'])
+def index():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>NextWave CRM Onboarding Agent API</title>
+        <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .card { background: #1e293b; padding: 40px; border-radius: 16px; border: 1px solid #334155; text-align: center; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+            h1 { color: #38bdf8; margin-top: 0; font-size: 24px; }
+            p { color: #94a3b8; line-height: 1.6; }
+            .btn { display: inline-block; background: #2563eb; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; margin-top: 20px; transition: background 0.2s; }
+            .btn:hover { background: #1d4ed8; }
+            .badge { display: inline-block; background: #064e3b; color: #34d399; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 15px; }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <div class="badge">🟢 Backend API Active & Connected</div>
+            <h1>NextWave CRM Onboarding Agent</h1>
+            <p>The Python Flask Agent API server is running successfully on port 5000.</p>
+            <p>To interact with the visual web interface, click below:</p>
+            <a href="http://localhost:3000" class="btn">Launch React UI (http://localhost:3000)</a>
+            <br/><br/>
+            <a href="https://crm-agent-ui.vercel.app" style="color: #38bdf8; font-size: 14px; text-decoration: underline;">Or open Live Vercel App (crm-agent-ui.vercel.app)</a>
+        </div>
+    </body>
+    </html>
+    """
+
+
 @app.route('/model-info', methods=['GET', 'POST'])
 def model_info():
     global anthropic_client, ANTHROPIC_API_KEY
